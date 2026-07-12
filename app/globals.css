@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de Capital Clash — basados en la paleta validada del skill dataviz.
+ * Verde/rojo quedan RESERVADOS para ganancia/pérdida y estados; el acento
+ * de marca es azul. Siempre acompañar color de signo o flecha (accesibilidad).
+ */
+:root {
+  --bg: #f9f9f7; /* plano de página */
+  --surface: #fcfcfb; /* tarjetas / gráficas */
+  --ink: #0b0b0b;
+  --ink2: #52514e;
+  --muted: #898781;
+  --line: #e1e0d9; /* hairlines, bordes, gridlines */
+  --accent: #2a78d6;
+  --accent-soft: #cde2fb;
+  --gain: #006300;
+  --loss: #d03b3b;
+  --warn: #fab219;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink2: #c3c2b7;
+    --muted: #898781;
+    --line: #2c2c2a;
+    --accent: #3987e5;
+    --accent-soft: #184f95;
+    --gain: #0ca30c;
+    --loss: #e66767;
+    --warn: #fab219;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink2: var(--ink2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Cifras y tickers en monoespaciada tabular */
+.figures {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
