@@ -159,6 +159,8 @@ as $$
 declare
   v_group public.groups;
   v_code text;
+  v_chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  i int;
 begin
   if auth.uid() is null then
     raise exception 'No autenticado';
@@ -166,11 +168,14 @@ begin
   if p_mode not in ('real', 'simulado') then
     raise exception 'Modo inválido';
   end if;
-  -- Código de invitación único de 6 caracteres (sin 0/O/1/I)
+  -- Código de invitación único de 6 caracteres (sin 0/O/1/I).
+  -- Solo funciones del core de Postgres: gen_random_bytes (pgcrypto) vive en
+  -- el esquema "extensions" en Supabase y no está en el search_path.
   loop
-    v_code := upper(
-      substring(translate(encode(gen_random_bytes(8), 'base64'), '0O1Il+/=', 'ABCDEFGH') from 1 for 6)
-    );
+    v_code := '';
+    for i in 1..6 loop
+      v_code := v_code || substr(v_chars, floor(random() * length(v_chars))::int + 1, 1);
+    end loop;
     exit when not exists (select 1 from groups where invite_code = v_code);
   end loop;
 
