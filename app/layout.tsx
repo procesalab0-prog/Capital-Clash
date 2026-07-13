@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
@@ -19,6 +19,16 @@ export const metadata: Metadata = {
   title: "Capital Clash",
   description:
     "El juego de estrategia financiera para invertir en equipo: forma un fondo con tus amigos, vota cada inversión y compite por el mejor rendimiento.",
+  applicationName: "Capital Clash",
+  appleWebApp: {
+    capable: true,
+    title: "Capital Clash",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#F5F1E4",
 };
 
 /** Aplica el tema guardado (o el del sistema) antes del primer paint. */
