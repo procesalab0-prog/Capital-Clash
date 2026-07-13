@@ -5,6 +5,7 @@ import { createGroupAction, joinGroupAction } from "@/app/actions";
 import {
   Badge,
   btnPrimary,
+  btnGhost,
   Card,
   EmptyState,
   inputCls,
@@ -29,7 +30,7 @@ export default async function GroupsPage({
       />
 
       {error && (
-        <p className="mb-4 rounded-lg border border-loss/40 bg-loss/10 px-3 py-2 text-sm text-loss">
+        <p className="hard-shadow-sm mb-4 rounded-xl border-[3px] border-loss bg-surface px-3 py-2 text-sm font-bold text-loss">
           ⚠ {decodeURIComponent(error)}
         </p>
       )}
@@ -40,30 +41,35 @@ export default async function GroupsPage({
           hint="Crea tu propio fondo o únete a uno con el código de invitación que te compartan."
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {groups.map((g) => (
             <Link key={g.id} href={`/g/${g.id}`}>
-              <Card className="h-full transition hover:border-accent">
+              <Card className="h-full transition hover:-translate-y-0.5">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold">{g.name}</p>
-                  <Badge tone={g.mode === "real" ? "accent" : "neutral"}>
+                  <p className="text-[15px] font-extrabold">{g.name}</p>
+                  <Badge tone={g.mode === "real" ? "accent" : "ink"}>
                     {g.mode === "real" ? "Dinero real" : "Simulado"}
                   </Badge>
                 </div>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-xs font-semibold text-muted">
                   {g.memberCount}{" "}
-                  {g.memberCount === 1 ? "participante" : "participantes"} ·{" "}
+                  {g.memberCount === 1 ? "jugador" : "jugadores"} ·{" "}
                   {g.role === "admin" ? "eres admin" : "miembro"}
                 </p>
+                <div className="mt-4 flex justify-end">
+                  <span className="figures rounded-lg border-2 border-dashed border-line px-2.5 py-1 text-xs">
+                    {g.inviteCode}
+                  </span>
+                </div>
               </Card>
             </Link>
           ))}
         </div>
       )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2">
         <Card>
-          <h2 className="font-semibold">Crear un grupo</h2>
+          <h2 className="font-extrabold">+ Crear un grupo</h2>
           <form action={createGroupAction} className="mt-3 grid gap-3">
             <input
               name="name"
@@ -72,32 +78,32 @@ export default async function GroupsPage({
               required
             />
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-line px-3 py-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border-[2.5px] border-line bg-bg px-3 py-2">
                 <input type="radio" name="mode" value="simulado" defaultChecked />
                 <span>
-                  <span className="font-medium">Simulado</span>
-                  <span className="block text-xs text-muted">
+                  <span className="font-extrabold">Simulado</span>
+                  <span className="block text-xs font-semibold text-muted">
                     Capital virtual, ejecución automática
                   </span>
                 </span>
               </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-line px-3 py-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border-[2.5px] border-line bg-bg px-3 py-2">
                 <input type="radio" name="mode" value="real" />
                 <span>
-                  <span className="font-medium">Dinero real</span>
-                  <span className="block text-xs text-muted">
+                  <span className="font-extrabold">Dinero real</span>
+                  <span className="block text-xs font-semibold text-muted">
                     La app registra; el dinero vive en su broker
                   </span>
                 </span>
               </label>
             </div>
-            <button className={btnPrimary}>Crear grupo</button>
+            <button className={btnPrimary}>+ Crear grupo</button>
           </form>
         </Card>
 
         <Card>
-          <h2 className="font-semibold">Unirme con código</h2>
-          <p className="mt-1 text-sm text-muted">
+          <h2 className="font-extrabold">Unirme con código</h2>
+          <p className="mt-1 text-sm font-semibold text-muted">
             Pide a quien creó el grupo su código de invitación.
           </p>
           <form action={joinGroupAction} className="mt-3 flex gap-2">
@@ -108,7 +114,7 @@ export default async function GroupsPage({
               maxLength={8}
               required
             />
-            <button className={btnPrimary}>Unirme</button>
+            <button className={btnGhost}>Unirme</button>
           </form>
         </Card>
       </div>

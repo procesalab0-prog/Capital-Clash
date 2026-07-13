@@ -30,7 +30,7 @@ export default async function SeasonPage({
         subtitle="La unidad de juego: aportación fija, ~45 días, y al final se corona al campeón."
       />
       {error && (
-        <p className="rounded-lg border border-loss/40 bg-loss/10 px-3 py-2 text-sm text-loss">
+        <p className="hard-shadow-sm rounded-xl border-[3px] border-loss bg-surface px-3 py-2 text-sm font-bold text-loss">
           ⚠ {decodeURIComponent(error)}
         </p>
       )}
@@ -39,13 +39,11 @@ export default async function SeasonPage({
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="font-semibold">{active.name}</h2>
-              <p className="mt-1 text-sm text-ink2">
-                {fmtDate(active.startDate)} → {fmtDate(active.endDate)} ·{" "}
-                {Math.max(0, daysBetween(todayISO(), active.endDate))} días
-                restantes
+              <h2 className="font-extrabold">{active.name}</h2>
+              <p className="mt-1 text-sm font-semibold text-ink2">
+                {fmtDate(active.startDate)} → {fmtDate(active.endDate)}
               </p>
-              <p className="text-sm text-muted">
+              <p className="text-sm font-semibold text-muted">
                 Aportación: {fmtMoney(active.contributionAmount)} por jugador ·
                 capital inicial {fmtMoney(ctx.initialCapital)}
                 {summary && ` · valor actual ${fmtMoney(summary.fundValue)}`}
@@ -54,13 +52,40 @@ export default async function SeasonPage({
             <Badge tone="gain">Activa</Badge>
           </div>
 
+          {(() => {
+            const total = Math.max(1, daysBetween(active.startDate, active.endDate));
+            const elapsed = Math.min(
+              total,
+              Math.max(0, daysBetween(active.startDate, todayISO())),
+            );
+            const left = Math.max(0, daysBetween(todayISO(), active.endDate));
+            return (
+              <div className="mt-5">
+                <div className="h-3 overflow-hidden rounded-full border-2 border-line bg-bg">
+                  <div
+                    className="h-full rounded-full bg-accent"
+                    style={{ width: `${Math.round((elapsed / total) * 100)}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 flex justify-between text-xs font-bold text-muted">
+                  <span>
+                    Día {elapsed} de {total}
+                  </span>
+                  <span>{left} días restantes</span>
+                </div>
+              </div>
+            );
+          })()}
+
           {isAdmin && (
-            <div className="mt-4 rounded-lg border border-line p-3">
-              <h3 className="text-sm font-semibold">Cerrar temporada</h3>
-              <p className="mt-1 text-xs text-muted">
-                Se venden todas las posiciones al precio actual, se calcula el
-                rendimiento final y se publica el ranking. Esta acción no se
-                puede deshacer.
+            <div className="mt-5 rounded-xl border-[2.5px] border-dashed border-line p-4">
+              <h3 className="text-xs font-extrabold uppercase tracking-wide text-muted">
+                Panel de admin
+              </h3>
+              <p className="mt-1.5 text-sm font-semibold text-ink2">
+                Al cerrar la temporada se venden todas las posiciones al precio
+                actual, se congela el ranking final y comienza la celebración
+                con podio. Esta acción no se puede deshacer.
               </p>
               <form
                 action={closeSeasonAction.bind(null, group.id, active.id)}

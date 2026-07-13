@@ -21,10 +21,10 @@ export default async function GroupLayout({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
               {group.name}
             </h1>
-            <Badge tone={group.mode === "real" ? "accent" : "neutral"}>
+            <Badge tone={group.mode === "real" ? "accent" : "ink"}>
               {group.mode === "real" ? "Dinero real" : "Simulado"}
             </Badge>
             {season && (

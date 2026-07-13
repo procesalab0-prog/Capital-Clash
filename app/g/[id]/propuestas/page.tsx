@@ -9,6 +9,7 @@ import { fmtMoney, fmtShares } from "@/lib/format";
 import type { ProposalWithVotes } from "@/lib/data/provider";
 import {
   Badge,
+  btnGain,
   btnGhost,
   btnPrimary,
   Card,
@@ -21,9 +22,12 @@ function hoursLeft(expiresAt: string): number {
   return Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 3600_000));
 }
 
-const statusBadge: Record<string, { label: string; tone: "neutral" | "accent" | "gain" | "loss" | "warn" }> = {
+const statusBadge: Record<
+  string,
+  { label: string; tone: "neutral" | "accent" | "gain" | "loss" | "warn" | "ink" }
+> = {
   pending: { label: "En votación", tone: "warn" },
-  approved: { label: "Aprobada · por ejecutar", tone: "accent" },
+  approved: { label: "Aprobada · por ejecutar", tone: "ink" },
   executed: { label: "Ejecutada", tone: "gain" },
   rejected: { label: "Rechazada", tone: "loss" },
   expired: { label: "Expirada", tone: "neutral" },
@@ -65,44 +69,41 @@ export default async function ProposalsPage({
     const myVote = p.votes.find((v) => v.userId === user.id)?.value ?? null;
     const oneAway = p.status === "pending" && st.needed - st.yes === 1;
     return (
-      <Card className={oneAway ? "border-accent" : ""}>
+      <div
+        className={`rounded-2xl border-[3px] bg-surface p-4 sm:p-5 ${
+          oneAway
+            ? "cc-wiggle border-accent shadow-[4px_4px_0_var(--accent)]"
+            : "hard-shadow border-line"
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Badge tone={p.type === "buy" ? "accent" : "neutral"}>
-              {p.type === "buy" ? "Compra" : "Venta"}
-            </Badge>
-            <span className="figures text-lg font-bold">{p.ticker}</span>
-            <span className="text-sm text-ink2">{p.companyName}</span>
+            <Badge tone="ink">{p.type === "buy" ? "Compra" : "Venta"}</Badge>
+            <span className="figures text-lg font-extrabold">{p.ticker}</span>
+            <span className="hidden text-sm font-semibold text-ink2 sm:inline">
+              {p.companyName}
+            </span>
           </div>
-          <Badge tone={statusBadge[p.status].tone}>{statusBadge[p.status].label}</Badge>
+          <Badge tone={statusBadge[p.status].tone}>
+            {statusBadge[p.status].label}
+          </Badge>
         </div>
-        <p className="figures mt-2 text-sm">
+        <p className="figures mt-2.5 text-sm">
           {p.type === "buy"
             ? `Invertir ${fmtMoney(p.amountUsd ?? 0)}`
             : `Vender ${fmtShares(p.shares ?? 0)} títulos`}
         </p>
-        <p className="mt-2 text-sm text-ink2">“{p.thesis}”</p>
-        <p className="mt-1 text-xs text-muted">
-          Propone {p.proposerName}
+        <p className="mt-2 text-sm font-semibold italic leading-relaxed text-ink2">
+          “{p.thesis}”
+        </p>
+        <p className="mt-1.5 text-xs font-bold text-muted">
+          — {p.proposerName}
           {p.status === "pending" && ` · expira en ${hoursLeft(p.expiresAt)} h`}
         </p>
 
         <div className="mt-3">
-          <div className="mb-1 flex justify-between text-xs text-ink2">
-            <span>
-              {st.yes} de {st.needed} votos “sí” necesarios
-              {oneAway && (
-                <span className="ml-1 font-semibold text-accent">
-                  · ¡a 1 voto de aprobarse!
-                </span>
-              )}
-            </span>
-            <span>
-              {st.no > 0 && `${st.no} en contra`}
-            </span>
-          </div>
           <div
-            className="h-2 overflow-hidden rounded-full bg-line"
+            className="h-2.5 overflow-hidden rounded-full border-2 border-line bg-bg"
             role="progressbar"
             aria-valuenow={st.yes}
             aria-valuemin={0}
@@ -113,7 +114,18 @@ export default async function ProposalsPage({
               style={{ width: `${Math.min(100, (st.yes / st.needed) * 100)}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-muted">
+          <div className="mt-1.5 flex flex-wrap justify-between gap-1 text-xs font-bold text-muted">
+            <span>
+              {st.yes}/{st.needed} votos “sí”
+              {st.no > 0 && ` · ${st.no} en contra`}
+            </span>
+            {oneAway && (
+              <span className="font-black text-accent">
+                ¡A 1 voto de aprobarse! 🔥
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-xs font-semibold text-muted">
             {p.votes
               .map(
                 (v) =>
@@ -125,22 +137,22 @@ export default async function ProposalsPage({
 
         {p.status === "pending" &&
           (myVote ? (
-            <p className="mt-3 text-sm text-ink2">
+            <p className="mt-3 text-sm font-bold">
               Tu voto: {myVote === "yes" ? "✓ sí" : "✗ no"}
             </p>
           ) : (
-            <div className="mt-3 flex gap-2">
-              <form action={voteAction.bind(null, group.id, p.id, "yes")}>
-                <button className={btnPrimary}>Votar sí ✓</button>
+            <div className="mt-4 flex gap-2.5">
+              <form action={voteAction.bind(null, group.id, p.id, "no")} className="flex-1">
+                <button className={`${btnGhost} w-full`}>Votar no ✗</button>
               </form>
-              <form action={voteAction.bind(null, group.id, p.id, "no")}>
-                <button className={btnGhost}>Votar no ✗</button>
+              <form action={voteAction.bind(null, group.id, p.id, "yes")} className="flex-1">
+                <button className={`${btnGain} w-full`}>Votar sí ✓</button>
               </form>
             </div>
           ))}
 
         {p.status === "approved" && group.mode === "real" && (
-          <div className="mt-3 rounded-lg border border-accent/40 p-3">
+          <div className="mt-3 rounded-xl border-[2.5px] border-dashed border-line p-3">
             {role === "admin" ? (
               <form
                 action={executeApprovedAction.bind(null, group.id, p.id)}
@@ -155,20 +167,20 @@ export default async function ProposalsPage({
                   placeholder="Precio ejecutado"
                 />
                 <button className={btnPrimary}>Registrar ejecución</button>
-                <p className="w-full text-xs text-muted">
+                <p className="w-full text-xs font-semibold text-muted">
                   Ejecuta la orden en su broker y registra aquí el precio real
                   (vacío = precio de mercado actual).
                 </p>
               </form>
             ) : (
-              <p className="text-xs text-muted">
+              <p className="text-xs font-semibold text-muted">
                 Aprobada por el grupo. El administrador registrará la ejecución
                 real del broker.
               </p>
             )}
           </div>
         )}
-      </Card>
+      </div>
     );
   }
 
@@ -176,21 +188,21 @@ export default async function ProposalsPage({
     <div>
       <PageTitle
         title="Propuestas"
-        subtitle={`Mayoría necesaria: ${votesNeeded(participants.length)} de ${participants.length} participantes.`}
+        subtitle={`Mayoría necesaria: ${votesNeeded(participants.length)} de ${participants.length} ${participants.length === 1 ? "jugador" : "jugadores"}.`}
       />
       {error && (
-        <p className="mb-4 rounded-lg border border-loss/40 bg-loss/10 px-3 py-2 text-sm text-loss">
+        <p className="hard-shadow-sm mb-4 rounded-xl border-[3px] border-loss bg-surface px-3 py-2 text-sm font-bold text-loss">
           ⚠ {decodeURIComponent(error)}
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div className="grid content-start gap-4">
+      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+        <div className="grid content-start gap-5">
           {approved.map((p) => (
             <VoteCard key={p.id} p={p} />
           ))}
           {pending.length === 0 && approved.length === 0 ? (
-            <Card className="py-8 text-center text-sm text-muted">
+            <Card className="py-8 text-center text-sm font-bold text-muted">
               No hay propuestas en votación. ¡Lanza la primera!
             </Card>
           ) : (
@@ -199,10 +211,10 @@ export default async function ProposalsPage({
 
           {resolved.length > 0 && (
             <details className="mt-2">
-              <summary className="cursor-pointer text-sm font-medium text-ink2">
-                Propuestas anteriores ({resolved.length})
+              <summary className="cursor-pointer text-sm font-extrabold text-ink2">
+                Historial de propuestas ({resolved.length})
               </summary>
-              <div className="mt-3 grid gap-4">
+              <div className="mt-4 grid gap-5">
                 {resolved.map((p) => (
                   <VoteCard key={p.id} p={p} />
                 ))}
@@ -213,7 +225,7 @@ export default async function ProposalsPage({
 
         <div>
           <Card>
-            <h2 className="mb-3 font-semibold">Nueva propuesta</h2>
+            <h2 className="mb-3 font-extrabold">Nueva propuesta</h2>
             <ProposalForm
               action={createProposalAction.bind(null, group.id, season.id)}
               positions={positions.map((p) => ({

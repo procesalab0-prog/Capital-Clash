@@ -17,8 +17,8 @@ export function GroupTabs({ groupId }: { groupId: string }) {
   const pathname = usePathname();
   const base = `/g/${groupId}`;
   return (
-    <nav className="-mx-4 overflow-x-auto px-4">
-      <div className="flex w-max gap-1 border-b border-line pb-0">
+    <nav className="-mx-4 overflow-x-auto px-4 pb-1">
+      <div className="flex w-max gap-2">
         {tabs.map((t) => {
           const href = t.slug ? `${base}/${t.slug}` : base;
           const active = pathname === href;
@@ -26,10 +26,10 @@ export function GroupTabs({ groupId }: { groupId: string }) {
             <Link
               key={t.slug}
               href={href}
-              className={`whitespace-nowrap rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition ${
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-extrabold transition ${
                 active
-                  ? "border-accent text-ink"
-                  : "border-transparent text-muted hover:text-ink2"
+                  ? "bg-ink text-bg"
+                  : "text-muted hover:text-ink"
               }`}
             >
               {t.label}

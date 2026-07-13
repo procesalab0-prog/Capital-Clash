@@ -16,7 +16,7 @@ export function CopyInvite({ code }: { code: string }) {
           // clipboard no disponible: el código queda visible igualmente
         }
       }}
-      className="figures rounded-lg border border-line px-3 py-1.5 text-sm text-ink2 transition hover:border-accent"
+      className="figures rounded-lg border-2 border-dashed border-line px-3 py-1.5 text-sm text-ink transition hover:border-accent hover:text-accent"
       title="Copiar código de invitación"
     >
       {copied ? "¡Copiado!" : `Invitación: ${code}`}

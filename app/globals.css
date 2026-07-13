@@ -1,38 +1,40 @@
 @import "tailwindcss";
 
 /*
- * Tokens de Capital Clash — basados en la paleta validada del skill dataviz.
- * Verde/rojo quedan RESERVADOS para ganancia/pérdida y estados; el acento
- * de marca es azul. Siempre acompañar color de signo o flecha (accesibilidad).
+ * Capital Clash — Naive Style (pase visual de Claude Design).
+ * Estética neo-brutalista juguetona: fondo crema, bordes gruesos color
+ * tinta, sombras duras desplazadas, acento rojo. El tema se controla con
+ * data-theme en <html> (toggle manual + preferencia del sistema al cargar).
+ * Verde = ganancia, rojo = pérdida, siempre acompañados de signo/flecha.
  */
 :root {
-  --bg: #f9f9f7; /* plano de página */
-  --surface: #fcfcfb; /* tarjetas / gráficas */
-  --ink: #0b0b0b;
-  --ink2: #52514e;
-  --muted: #898781;
-  --line: #e1e0d9; /* hairlines, bordes, gridlines */
-  --accent: #2a78d6;
-  --accent-soft: #cde2fb;
-  --gain: #006300;
-  --loss: #d03b3b;
-  --warn: #fab219;
+  --bg: #f5f1e4;
+  --surface: #ffffff;
+  --ink: #1d2633;
+  --ink2: #42505e;
+  --muted: #8a93a0;
+  --line: #1d2633;
+  --accent: #e63946;
+  --gain: #2dbe7f;
+  --loss: #e63946;
+  --blue: #4d8cff;
+  --yellow: #ffd65a;
+  --orange: #ff9f43;
+  --gold: #d4af37;
+  --bronze: #b08d57;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d0d0d;
-    --surface: #1a1a19;
-    --ink: #ffffff;
-    --ink2: #c3c2b7;
-    --muted: #898781;
-    --line: #2c2c2a;
-    --accent: #3987e5;
-    --accent-soft: #184f95;
-    --gain: #0ca30c;
-    --loss: #e66767;
-    --warn: #fab219;
-  }
+:root[data-theme="dark"] {
+  --bg: #161b22;
+  --surface: #1d2633;
+  --ink: #f5f1e4;
+  --ink2: #c7cdd6;
+  --muted: #8894a3;
+  --line: #f5f1e4;
+  --accent: #ff5a5e;
+  --gain: #3fe0a0;
+  --loss: #ff5a5e;
+  --blue: #6fa8ff;
 }
 
 @theme inline {
@@ -43,22 +45,85 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
   --color-gain: var(--gain);
   --color-loss: var(--loss);
-  --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-blue: var(--blue);
+  --color-yellow: var(--yellow);
+  --color-orange: var(--orange);
+  --font-sans: var(--font-satoshi);
+  --font-mono: var(--font-jetbrains);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: "Satoshi", var(--font-satoshi, -apple-system), system-ui, sans-serif;
+  font-weight: 500;
+  transition: background 0.25s ease;
 }
 
-/* Cifras y tickers en monoespaciada tabular */
+/* Cifras, tickers y códigos */
 .figures {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Sombras duras del estilo Naive */
+.hard-shadow {
+  box-shadow: 4px 4px 0 var(--line);
+}
+.hard-shadow-sm {
+  box-shadow: 3px 3px 0 var(--line);
+}
+.hard-shadow-accent {
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
+/* Momentos de emoción */
+@keyframes ccWiggle {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+@keyframes ccBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes ccFall {
+  0% {
+    transform: translateY(-12px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(220px) rotate(260deg);
+    opacity: 0;
+  }
+}
+.cc-wiggle {
+  animation: ccWiggle 1.6s ease-in-out infinite;
+}
+.cc-crown {
+  animation: ccWiggle 1.8s ease-in-out infinite;
+  display: inline-block;
+}
+.cc-confetti {
+  animation: ccFall 2.6s ease-in infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-wiggle,
+  .cc-crown,
+  .cc-confetti {
+    animation: none;
+  }
 }

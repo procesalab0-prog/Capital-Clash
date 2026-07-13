@@ -1,20 +1,30 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
-import { btnGhost, btnPrimary, Card } from "@/components/ui";
+import { btnPrimary, Card } from "@/components/ui";
+import { LogoMark } from "@/components/Logo";
 
 const steps = [
   {
+    n: "1",
+    color: "var(--yellow)",
+    dark: true,
     title: "Formen su fondo",
-    body: "Crea un grupo, invita a tus amigos con un código y acuerden la aportación de la temporada (~45 días).",
+    body: "Crea un grupo, invita con un código y acuerden la aportación de la temporada (~45 días).",
   },
   {
+    n: "2",
+    color: "var(--blue)",
+    dark: false,
     title: "Propongan y voten",
-    body: "Cada inversión se propone con una tesis y se somete a votación. Solo se ejecuta si la mayoría dice sí.",
+    body: "Cada inversión lleva una tesis y se somete a votación. Solo se ejecuta si la mayoría dice sí.",
   },
   {
+    n: "3",
+    color: "var(--gain)",
+    dark: true,
     title: "Compitan y aprendan",
-    body: "Sigue el valor del fondo contra el S&P 500. Al cierre se venden las posiciones y se corona al mejor estratega.",
+    body: "Sigan el fondo contra el S&P 500. Al cierre se corona al mejor estratega en el podio.",
   },
 ];
 
@@ -33,47 +43,48 @@ export default async function Home() {
 
   return (
     <div className="py-8 sm:py-14">
-      <section className="mx-auto max-w-3xl text-center">
-        <p className="figures text-sm font-medium tracking-widest text-accent">
-          EL JUEGO DE INVERSIÓN EN EQUIPO
-        </p>
-        <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
-          Tu fondo. Tu equipo.
+      <section className="mx-auto flex max-w-3xl flex-col items-center text-center">
+        <LogoMark size={96} className="hard-shadow-accent rounded-3xl border-4" />
+        <h1 className="mt-6 text-5xl font-black leading-[0.95] tracking-tighter sm:text-7xl">
+          CAPITAL
           <br />
-          Tu victoria.
+          <span className="text-accent">CLASH</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-ink2">
-          Capital Clash convierte a tu grupo de amigos en un fondo de
-          inversión: proponen acciones reales, votan cada decisión y compiten
-          por el mejor rendimiento de la temporada.
+        <p className="mt-4 text-lg font-extrabold tracking-tight">
+          Tu fondo. Tu equipo. Tu victoria.
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/login" className={btnPrimary}>
-            Empezar a jugar
-          </Link>
-          <Link href="/login" className={btnGhost}>
-            Ver la demo
-          </Link>
-        </div>
+        <p className="mx-auto mt-2 max-w-xl font-semibold text-ink2">
+          Arma un fondo con tus amigos: propongan acciones reales, voten cada
+          decisión y compitan por el mejor rendimiento de la temporada.
+        </p>
+        <Link href="/login" className={`${btnPrimary} mt-8 px-8 py-4 text-base`}>
+          ¡Vamos a jugar! →
+        </Link>
       </section>
 
-      <section className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-3">
-        {steps.map((s, i) => (
-          <Card key={s.title}>
-            <p className="figures text-sm font-bold text-accent">{i + 1}</p>
-            <h2 className="mt-1 font-semibold">{s.title}</h2>
-            <p className="mt-1 text-sm text-ink2">{s.body}</p>
+      <section className="mx-auto mt-14 grid max-w-4xl gap-5 sm:grid-cols-3">
+        {steps.map((s) => (
+          <Card key={s.n}>
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full border-[2.5px] border-line text-sm font-black"
+              style={{ background: s.color, color: s.dark ? "#1d2633" : "#fff" }}
+              aria-hidden
+            >
+              {s.n}
+            </span>
+            <h2 className="mt-3 font-extrabold">{s.title}</h2>
+            <p className="mt-1 text-sm font-semibold text-ink2">{s.body}</p>
           </Card>
         ))}
       </section>
 
-      <section className="mx-auto mt-10 max-w-4xl">
+      <section className="mx-auto mt-8 max-w-4xl">
         <Card>
-          <h2 className="font-semibold">Reglas de la temporada</h2>
-          <ul className="mt-3 grid gap-2 text-sm text-ink2 sm:grid-cols-2">
+          <h2 className="font-extrabold">Reglas de la temporada</h2>
+          <ul className="mt-3 grid gap-2 text-sm font-semibold text-ink2 sm:grid-cols-2">
             {rules.map((r) => (
               <li key={r} className="flex gap-2">
-                <span aria-hidden className="text-accent">
+                <span aria-hidden className="font-black text-gain">
                   ✓
                 </span>
                 {r}

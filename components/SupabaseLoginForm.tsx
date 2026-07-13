@@ -42,14 +42,14 @@ export function SupabaseLoginForm() {
 
   return (
     <Card>
-      <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg border border-line p-1 text-sm font-medium">
+      <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl border-[2.5px] border-line p-1 text-sm font-extrabold">
         {(["login", "signup"] as const).map((m) => (
           <button
             key={m}
             type="button"
             onClick={() => setMode(m)}
-            className={`rounded-md py-1.5 transition ${
-              mode === m ? "bg-accent text-white" : "text-ink2"
+            className={`rounded-lg py-1.5 transition ${
+              mode === m ? "bg-ink text-bg" : "text-muted"
             }`}
           >
             {m === "login" ? "Iniciar sesión" : "Crear cuenta"}

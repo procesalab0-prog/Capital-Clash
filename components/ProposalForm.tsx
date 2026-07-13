@@ -54,14 +54,14 @@ export function ProposalForm({
 
   return (
     <form action={action} className="grid gap-3">
-      <div className="grid grid-cols-2 gap-1 rounded-lg border border-line p-1 text-sm font-medium">
+      <div className="grid grid-cols-2 gap-1 rounded-xl border-[2.5px] border-line p-1 text-sm font-extrabold">
         {(["buy", "sell"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setType(t)}
-            className={`rounded-md py-1.5 transition ${
-              type === t ? "bg-accent text-white" : "text-ink2"
+            className={`rounded-lg py-1.5 transition ${
+              type === t ? "bg-ink text-bg" : "text-muted"
             }`}
           >
             {t === "buy" ? "Comprar" : "Vender"}
@@ -86,12 +86,12 @@ export function ProposalForm({
               required
             />
             {open && results.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
+              <ul className="hard-shadow-sm absolute z-10 mt-1 w-full overflow-hidden rounded-xl border-[2.5px] border-line bg-surface">
                 {results.map((r) => (
                   <li key={r.ticker}>
                     <button
                       type="button"
-                      className="flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm hover:bg-line/40"
+                      className="flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm font-semibold hover:bg-bg"
                       onClick={() => {
                         setSelected(r);
                         setQuery(`${r.ticker} — ${r.name}`);

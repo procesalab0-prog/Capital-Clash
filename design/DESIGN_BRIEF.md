@@ -1,5 +1,13 @@
 # Capital Clash — Brief para Claude Design
 
+> **Estado: IMPLEMENTADO** ✅ — El pase visual "Naive Style" diseñado en
+> Claude Design (`Capital Clash - Naive Style.dc.html`) ya está aplicado a
+> toda la app: paleta crema/tinta con acento rojo `#E63946`, bordes gruesos,
+> sombras duras, Satoshi + JetBrains Mono, toggle claro/oscuro, podio con
+> corona y confetti, y la tarjeta "¡a 1 voto!" animada. Las capturas de
+> `screenshots/` reflejan el estilo implementado. Este brief se conserva como
+> referencia del sistema y para futuros pases.
+
 Este documento contiene todo lo necesario para llevar la interfaz del MVP
 (funcional y ya construida — ver `screenshots/`) a un nivel visual
 sobresaliente. El objetivo del pase de diseño es **refinar, no reconstruir**:
@@ -56,7 +64,7 @@ tokens se consumen vía Tailwind (`bg-surface`, `text-ink`, `text-gain`…):
 | Propuestas | `06-propuestas.png`, `17-mobile-propuestas.png` (móvil) | Tarjetas de votación + formulario | sin propuestas |
 | Participantes | — | Tarjetas por jugador (parte del fondo, sus propuestas, puntería) | sin propuestas ejecutadas ("—") |
 | Historial | — | Tabla cronológica de operaciones | sin operaciones |
-| Ranking | `11-ranking.png`, `15-ranking-final.png` | **Podio 🥇🥈🥉** + tabla + estadísticas | pocos jugadores (<3 en podio) |
+| Ranking | `11-ranking.png` | **Podio con corona 👑** + tabla + estadísticas | pocos jugadores (<3 en podio) |
 | Temporada | — | Estado de la temporada + crear/cerrar (admin) | sin temporada |
 
 ## 4. Componentes clave a diseñar/refinar

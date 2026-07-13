@@ -38,11 +38,11 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
 
   return (
     <div>
-      <div className="mb-2 flex flex-wrap gap-4 text-xs text-ink2">
+      <div className="mb-2 flex flex-wrap gap-4 text-xs font-bold text-muted">
         <span className="flex items-center gap-1.5">
           <span
             aria-hidden
-            className="inline-block h-0.5 w-4 rounded"
+            className="inline-block h-2.5 w-2.5 rounded-full"
             style={{ background: "var(--accent)" }}
           />
           Fondo
@@ -51,7 +51,7 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
           <span className="flex items-center gap-1.5">
             <span
               aria-hidden
-              className="inline-block h-0.5 w-4 rounded"
+              className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: "var(--muted)" }}
             />
             S&P 500 (misma inversión)
@@ -61,7 +61,12 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
       <div className="h-64 w-full sm:h-72">
         <ResponsiveContainer>
           <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 4 }}>
-            <CartesianGrid stroke="var(--line)" strokeWidth={1} vertical={false} />
+            <CartesianGrid
+              stroke="var(--line)"
+              strokeWidth={1}
+              strokeOpacity={0.2}
+              vertical={false}
+            />
             <XAxis
               dataKey="date"
               tickFormatter={shortDate}
@@ -82,10 +87,12 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
               cursor={{ stroke: "var(--muted)", strokeWidth: 1 }}
               contentStyle={{
                 background: "var(--surface)",
-                border: "1px solid var(--line)",
-                borderRadius: 8,
+                border: "2.5px solid var(--line)",
+                borderRadius: 12,
+                boxShadow: "3px 3px 0 var(--line)",
                 color: "var(--ink)",
                 fontSize: 12,
+                fontWeight: 700,
               }}
               labelFormatter={(l) => shortDate(String(l))}
               formatter={(value, name) => [
@@ -93,28 +100,28 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
                 name === "fondo" ? "Fondo" : "S&P 500",
               ]}
             />
-            <Line
-              type="monotone"
-              dataKey="fondo"
-              stroke="var(--accent)"
-              strokeWidth={2}
-              strokeLinecap="round"
-              dot={false}
-              activeDot={{ r: 4, stroke: "var(--surface)", strokeWidth: 2 }}
-              isAnimationActive={false}
-            />
             {hasBench && (
               <Line
                 type="monotone"
                 dataKey="sp500"
                 stroke="var(--muted)"
-                strokeWidth={2}
+                strokeWidth={3}
                 strokeLinecap="round"
                 dot={false}
-                activeDot={{ r: 4, stroke: "var(--surface)", strokeWidth: 2 }}
+                activeDot={{ r: 5, stroke: "var(--ink)", strokeWidth: 2.5 }}
                 isAnimationActive={false}
               />
             )}
+            <Line
+              type="monotone"
+              dataKey="fondo"
+              stroke="var(--accent)"
+              strokeWidth={4}
+              strokeLinecap="round"
+              dot={false}
+              activeDot={{ r: 6, stroke: "var(--ink)", strokeWidth: 2.5 }}
+              isAnimationActive={false}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
