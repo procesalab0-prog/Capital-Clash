@@ -1,8 +1,15 @@
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { getProvider, isDemoMode } from "./data/provider";
 import type { DataProvider, ProposalWithVotes } from "./data/provider";
 import { getSessionUser } from "./session";
-import { getQuotes, demoPriceAt, getMoneyRate, BENCHMARK_TICKER } from "./prices";
+import {
+  getQuotes,
+  demoPriceAt,
+  getMoneyRate,
+  applyCustomTickers,
+  BENCHMARK_TICKER,
+} from "./prices";
 import {
   computePositions,
   computeSummary,
@@ -11,6 +18,7 @@ import {
 import { ensureDailySnapshot, sweepExpiredProposals } from "./game";
 import { todayISO } from "./format";
 import type {
+  CustomTicker,
   FundSnapshot,
   Group,
   GroupMember,
@@ -40,6 +48,7 @@ export interface GroupContext {
   quotes: Map<string, Quote>;
   summary: PortfolioSummary | null;
   positions: Position[];
+  customTickers: CustomTicker[];
 }
 
 export async function requireUser(): Promise<Profile> {
@@ -48,62 +57,79 @@ export async function requireUser(): Promise<Profile> {
   return user;
 }
 
-export async function getGroupContext(groupId: string): Promise<GroupContext> {
-  const user = await requireUser();
-  const provider = await getProvider();
-  const group = await provider.getGroup(groupId);
-  if (!group) notFound();
-  const members = await provider.getMembers(groupId);
-  const me = members.find((m) => m.userId === user.id);
-  if (!me) redirect("/grupos");
+/**
+ * Envuelto en React `cache()`: el layout del grupo y la página que se
+ * renderiza dentro de él llaman a `getGroupContext(groupId)` por separado.
+ * Sin esto, cada navegación repetía TODAS las consultas (incluidas las
+ * llamadas externas de precios) dos veces por request — la causa principal
+ * de la lentitud al cambiar de pestaña. `cache()` dedupea por request.
+ */
+export const getGroupContext = cache(
+  async (groupId: string): Promise<GroupContext> => {
+    const user = await requireUser();
+    const provider = await getProvider();
+    const group = await provider.getGroup(groupId);
+    if (!group) notFound();
 
-  const seasons = await provider.getSeasons(groupId);
-  const season =
-    seasons.find((s) => s.status === "active") ?? seasons[0] ?? null;
+    const [members, seasons, customTickers] = await Promise.all([
+      provider.getMembers(groupId),
+      provider.getSeasons(groupId),
+      provider.getCustomTickers(groupId),
+    ]);
+    const me = members.find((m) => m.userId === user.id);
+    if (!me) redirect("/grupos");
 
-  let participants: SeasonParticipant[] = [];
-  let transactions: Transaction[] = [];
-  let proposals: ProposalWithVotes[] = [];
-  let quotes = new Map<string, Quote>();
-  let summary: PortfolioSummary | null = null;
-  let positions: Position[] = [];
-  let initialCapital = 0;
+    const season =
+      seasons.find((s) => s.status === "active") ?? seasons[0] ?? null;
 
-  if (season) {
-    participants = await provider.getParticipants(season.id);
-    initialCapital = participants.reduce((s, p) => s + p.contribution, 0);
-    transactions = await provider.getTransactions(season.id);
-    proposals = await sweepExpiredProposals(
+    let participants: SeasonParticipant[] = [];
+    let transactions: Transaction[] = [];
+    let proposals: ProposalWithVotes[] = [];
+    let quotes = new Map<string, Quote>();
+    let summary: PortfolioSummary | null = null;
+    let positions: Position[] = [];
+    let initialCapital = 0;
+
+    if (season) {
+      const [rawParticipants, rawTransactions, rawProposals] = await Promise.all([
+        provider.getParticipants(season.id),
+        provider.getTransactions(season.id),
+        provider.getProposals(season.id),
+      ]);
+      participants = rawParticipants;
+      initialCapital = participants.reduce((s, p) => s + p.contribution, 0);
+      transactions = rawTransactions;
+      proposals = await sweepExpiredProposals(provider, rawProposals);
+      const tickers = [
+        ...transactions.map((t) => t.ticker),
+        ...proposals.map((p) => p.ticker),
+        BENCHMARK_TICKER,
+      ];
+      quotes = await getQuotes(tickers);
+      applyCustomTickers(quotes, customTickers);
+      summary = computeSummary(transactions, quotes, initialCapital);
+      positions = computePositions(transactions, quotes);
+    }
+
+    return {
       provider,
-      await provider.getProposals(season.id),
-    );
-    const tickers = [
-      ...transactions.map((t) => t.ticker),
-      ...proposals.map((p) => p.ticker),
-      BENCHMARK_TICKER,
-    ];
-    quotes = await getQuotes(tickers);
-    summary = computeSummary(transactions, quotes, initialCapital);
-    positions = computePositions(transactions, quotes);
-  }
-
-  return {
-    provider,
-    user,
-    group,
-    members,
-    role: me.role,
-    seasons,
-    season,
-    participants,
-    initialCapital,
-    transactions,
-    proposals,
-    quotes,
-    summary,
-    positions,
-  };
-}
+      user,
+      group,
+      members,
+      role: me.role,
+      seasons,
+      season,
+      participants,
+      initialCapital,
+      transactions,
+      proposals,
+      quotes,
+      summary,
+      positions,
+      customTickers,
+    };
+  },
+);
 
 /**
  * Serie histórica del fondo para la gráfica.
@@ -117,7 +143,7 @@ export async function getFundSeries(ctx: GroupContext): Promise<FundSnapshot[]> 
       ctx.season.status === "closed" && ctx.season.closedAt
         ? ctx.season.closedAt.slice(0, 10)
         : todayISO();
-    const rate = await getMoneyRate();
+    const rate = getMoneyRate();
     const series = computeFundSeries(
       ctx.season,
       ctx.transactions,

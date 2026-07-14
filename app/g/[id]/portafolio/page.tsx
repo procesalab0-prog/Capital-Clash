@@ -1,6 +1,6 @@
 import { getGroupContext } from "@/lib/loaders";
 import { fmtMoney, fmtShares } from "@/lib/format";
-import { Card, EmptyState, PageTitle, PnlText } from "@/components/ui";
+import { Card, DualPrice, EmptyState, PageTitle, PnlText } from "@/components/ui";
 
 export default async function PortfolioPage({
   params,
@@ -50,7 +50,9 @@ export default async function PortfolioPage({
                   </td>
                   <td className="figures px-4 py-3 text-right">{fmtShares(p.shares)}</td>
                   <td className="figures px-4 py-3 text-right">{fmtMoney(p.avgCost)}</td>
-                  <td className="figures px-4 py-3 text-right">{fmtMoney(p.currentPrice)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <DualPrice usd={p.currentPriceUsd} size="sm" />
+                  </td>
                   <td className="figures px-4 py-3 text-right">{fmtMoney(p.currentValue)}</td>
                   <td className="px-4 py-3 text-right">
                     <PnlText value={p.pnl} pct={p.pnlPct} />

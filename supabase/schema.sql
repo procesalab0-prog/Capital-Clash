@@ -94,6 +94,19 @@ create table public.fund_snapshots (
   primary key (season_id, date)
 );
 
+-- Acciones personalizadas: empresas que no aparecen en el mercado (FMP /
+-- universo demo). Precio fijo en USD hasta que alguien lo actualice.
+create table public.custom_tickers (
+  id uuid primary key default gen_random_uuid (),
+  group_id uuid not null references public.groups (id) on delete cascade,
+  ticker text not null,
+  company_name text not null default '',
+  price_usd numeric(14, 4) not null check (price_usd > 0),
+  created_by uuid not null references public.profiles (id),
+  created_at timestamptz not null default now(),
+  unique (group_id, ticker)
+);
+
 create index on public.group_members (user_id);
 create index on public.seasons (group_id);
 create index on public.proposals (season_id);
@@ -222,6 +235,7 @@ alter table public.proposals enable row level security;
 alter table public.votes enable row level security;
 alter table public.transactions enable row level security;
 alter table public.fund_snapshots enable row level security;
+alter table public.custom_tickers enable row level security;
 
 -- Perfiles: visibles para usuarios autenticados (nombres en rankings),
 -- editables solo por su dueño.
@@ -336,3 +350,12 @@ create policy "snapshots_insert" on public.fund_snapshots
 create policy "snapshots_update" on public.fund_snapshots
   for update to authenticated
   using (public.is_group_member (public.season_group (season_id)));
+
+-- Acciones personalizadas: miembros leen y crean para su propio grupo.
+create policy "custom_tickers_select" on public.custom_tickers
+  for select to authenticated using (public.is_group_member (group_id));
+create policy "custom_tickers_insert" on public.custom_tickers
+  for insert to authenticated
+  with check (
+    created_by = auth.uid() and public.is_group_member (group_id)
+  );

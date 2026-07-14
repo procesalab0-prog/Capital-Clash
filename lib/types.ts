@@ -99,7 +99,10 @@ export interface FundSnapshot {
 export interface Quote {
   ticker: string;
   name: string;
+  /** Precio en MXN — moneda usada para todos los cálculos del fondo. */
   price: number;
+  /** Precio nativo en USD, solo para mostrarlo como referencia. */
+  priceUsd: number;
   changePct: number | null; // variación del día, si se conoce
 }
 
@@ -108,15 +111,31 @@ export interface TickerSearchResult {
   name: string;
 }
 
+/**
+ * Acción personalizada creada por un miembro del grupo para una empresa que
+ * no aparece en el mercado (búsqueda de FMP / universo demo). Su precio es
+ * fijo hasta que alguien lo actualice — no se cotiza en ningún lado.
+ */
+export interface CustomTicker {
+  id: string;
+  groupId: string;
+  ticker: string;
+  companyName: string;
+  priceUsd: number;
+  createdBy: string;
+  createdAt: string;
+}
+
 // ---- Valores derivados (calculados, no almacenados) ----
 
 export interface Position {
   ticker: string;
   companyName: string;
   shares: number;
-  avgCost: number; // costo promedio por acción
+  avgCost: number; // costo promedio por acción, en MXN
   invested: number; // shares * avgCost
-  currentPrice: number;
+  currentPrice: number; // MXN
+  currentPriceUsd: number; // nativo, para mostrarlo como referencia
   currentValue: number;
   pnl: number; // ganancia/pérdida no realizada
   pnlPct: number;

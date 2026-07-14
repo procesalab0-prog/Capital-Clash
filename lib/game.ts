@@ -1,8 +1,32 @@
 import type { DataProvider, ProposalWithVotes } from "./data/provider";
 import { computeSummary } from "./portfolio";
-import { getQuote, getQuotes, BENCHMARK_TICKER } from "./prices";
+import { getQuote, getQuotes, applyCustomTickers, BENCHMARK_TICKER } from "./prices";
 import { todayISO } from "./format";
 import type { Group, Quote, Season, Transaction } from "./types";
+
+/**
+ * Cotización de un ticker respetando las acciones personalizadas del grupo
+ * (su precio fijo tiene prioridad sobre cualquier cotización real/demo).
+ */
+export async function resolveGroupQuote(
+  provider: DataProvider,
+  groupId: string,
+  ticker: string,
+): Promise<Quote> {
+  const map = await getQuotes([ticker]);
+  applyCustomTickers(map, await provider.getCustomTickers(groupId));
+  return map.get(ticker)!;
+}
+
+async function resolveGroupQuotes(
+  provider: DataProvider,
+  groupId: string,
+  tickers: string[],
+): Promise<Map<string, Quote>> {
+  const map = await getQuotes(tickers);
+  applyCustomTickers(map, await provider.getCustomTickers(groupId));
+  return map;
+}
 
 /**
  * Reglas del juego, compartidas por el modo demo y el modo Supabase.
@@ -145,7 +169,7 @@ export async function castVoteAndResolve(
   if (state.yes >= state.needed) {
     await provider.setProposalStatus(proposalId, "approved");
     if (group.mode === "simulado") {
-      const quote = await getQuote(proposal.ticker);
+      const quote = await resolveGroupQuote(provider, group.id, proposal.ticker);
       const result = await executeProposal(provider, proposal, season, quote.price);
       if (!result.ok) return { resolved: "approved", error: result.error };
       return { resolved: "executed" };
@@ -178,7 +202,7 @@ export async function closeSeason(
     holdings.set(tx.ticker, h);
   }
   const open = [...holdings.entries()].filter(([, h]) => h.shares > 1e-9);
-  const quotes = await getQuotes(open.map(([t]) => t));
+  const quotes = await resolveGroupQuotes(provider, season.groupId, open.map(([t]) => t));
 
   for (const [ticker, h] of open) {
     const price = quotes.get(ticker)!.price;

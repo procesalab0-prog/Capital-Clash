@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
+  CustomTicker,
   FundSnapshot,
   Group,
   GroupMember,
@@ -492,6 +493,52 @@ export function createSupabaseProvider(): DataProvider {
         { onConflict: "season_id,date" },
       );
       if (error) throw error;
+    },
+
+    async getCustomTickers(groupId) {
+      const supabase = await client();
+      const { data, error } = await supabase
+        .from("custom_tickers")
+        .select("*")
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(
+        (r: any): CustomTicker => ({
+          id: r.id,
+          groupId: r.group_id,
+          ticker: r.ticker,
+          companyName: r.company_name,
+          priceUsd: Number(r.price_usd),
+          createdBy: r.created_by,
+          createdAt: r.created_at,
+        }),
+      );
+    },
+
+    async createCustomTicker(input) {
+      const supabase = await client();
+      const { data, error } = await supabase
+        .from("custom_tickers")
+        .insert({
+          group_id: input.groupId,
+          ticker: input.ticker.toUpperCase(),
+          company_name: input.companyName,
+          price_usd: input.priceUsd,
+          created_by: input.createdBy,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return {
+        id: data.id,
+        groupId: data.group_id,
+        ticker: data.ticker,
+        companyName: data.company_name,
+        priceUsd: Number(data.price_usd),
+        createdBy: data.created_by,
+        createdAt: data.created_at,
+      };
     },
   };
 }

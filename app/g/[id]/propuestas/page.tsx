@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   createProposalAction,
   executeApprovedAction,
@@ -13,6 +14,7 @@ import {
   btnGhost,
   btnPrimary,
   Card,
+  DualPrice,
   inputCls,
   PageTitle,
 } from "@/components/ui";
@@ -89,16 +91,19 @@ export default async function ProposalsPage({
             {statusBadge[p.status].label}
           </Badge>
         </div>
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <span className="figures">
+        <div className="mt-2.5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <span className="figures text-sm">
             {p.type === "buy"
               ? `Invertir ${fmtMoney(p.amountUsd ?? 0)}`
               : `Vender ${fmtShares(p.shares ?? 0)} títulos`}
           </span>
           {quotes.get(p.ticker) && (
-            <span className="figures text-xs text-muted">
-              Precio actual: {fmtMoney(quotes.get(p.ticker)!.price)}
-            </span>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
+                Precio actual
+              </p>
+              <DualPrice usd={quotes.get(p.ticker)!.priceUsd} size="sm" />
+            </div>
           )}
         </div>
         <p className="mt-2 text-sm font-semibold italic leading-relaxed text-ink2">
@@ -255,10 +260,21 @@ export default async function ProposalsPage({
                 shares: p.shares,
               }))}
               cash={summary.cash}
+              groupId={group.id}
               initialTicker={initialTicker}
               initialName={initialName}
+              customTickers={ctx.customTickers.map((c) => ({
+                ticker: c.ticker,
+                name: c.companyName,
+              }))}
             />
           </Card>
+          <p className="mt-3 text-center text-xs font-semibold text-muted">
+            ¿No aparece la empresa que buscas?{" "}
+            <Link href={`/g/${group.id}/mercado`} className="font-bold text-accent hover:underline">
+              Créala en Mercado →
+            </Link>
+          </p>
         </div>
       </div>
     </div>

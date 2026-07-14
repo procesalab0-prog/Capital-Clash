@@ -1,5 +1,8 @@
 import { unstable_cache } from "next/cache";
-import type { Quote, TickerSearchResult } from "./types";
+import { USD_MXN_RATE } from "./format";
+import type { CustomTicker, Quote, TickerSearchResult } from "./types";
+
+export { USD_MXN_RATE };
 
 /**
  * Precios de acciones.
@@ -23,33 +26,20 @@ export function hasRealPrices(): boolean {
 }
 
 /**
- * Tipo de cambio USD→MXN. Las acciones cotizan en dólares; la app muestra
- * todo en pesos. Con FMP se usa el tipo real (cacheado 1 h); sin key, un
- * valor de respaldo fijo.
+ * Tipo de cambio USD→MXN, fijo (definido en lib/format.ts porque ese módulo
+ * no tiene dependencias de servidor). Las acciones cotizan en dólares; la
+ * app muestra el precio en USD (el real, de mercado) con su equivalente en
+ * pesos abajo, como referencia.
+ *
+ * Se usa un valor fijo (no una cotización en vivo) a propósito: un tipo de
+ * cambio en vivo agregaba una llamada externa extra en cada carga (más
+ * lentitud) y, peor, podía desincronizarse del tipo usado al sembrar los
+ * datos demo, haciendo que el rendimiento de las posiciones se viera "mal"
+ * de un momento a otro sin que nada cambiara realmente. Actualiza
+ * USD_MXN_RATE en lib/format.ts de vez en cuando si el peso se mueve mucho.
  */
-export const USD_MXN_FALLBACK = 18.5;
-
-const fetchUsdMxnRate = unstable_cache(
-  async (): Promise<number> => {
-    const key = fmpKey();
-    if (!key) return USD_MXN_FALLBACK;
-    try {
-      const res = await fetch(`${FMP_BASE}/quote/USDMXN?apikey=${key}`);
-      if (!res.ok) return USD_MXN_FALLBACK;
-      const data = (await res.json()) as { price?: number }[];
-      const p = data?.[0]?.price;
-      return typeof p === "number" && p > 0 ? p : USD_MXN_FALLBACK;
-    } catch {
-      return USD_MXN_FALLBACK;
-    }
-  },
-  ["usd-mxn-rate"],
-  { revalidate: 3600 },
-);
-
-/** Pesos por dólar (para convertir precios de acciones a MXN). */
-export async function getMoneyRate(): Promise<number> {
-  return fetchUsdMxnRate();
+export function getMoneyRate(): number {
+  return USD_MXN_RATE;
 }
 
 /** Acciones populares que se muestran en la pestaña Mercado. */
@@ -150,7 +140,8 @@ function demoQuote(ticker: string, dateISO: string): Quote {
   return {
     ticker,
     name: entry ? entry.name : ticker,
-    price,
+    price, // USD crudo; getQuotes() lo convierte a MXN y guarda priceUsd
+    priceUsd: price,
     changePct: prev > 0 ? ((price - prev) / prev) * 100 : null,
   };
 }
@@ -196,7 +187,8 @@ const fetchFmpQuotes = unstable_cache(
     return data.map((q) => ({
       ticker: q.symbol,
       name: q.name,
-      price: q.price,
+      price: q.price, // USD crudo; getQuotes() lo convierte a MXN
+      priceUsd: q.price,
       changePct: q.changesPercentage ?? null,
     }));
   },
@@ -243,15 +235,14 @@ export async function getQuotes(
   for (const t of unique) {
     if (!map.has(t)) map.set(t, demoQuote(t, today));
   }
-  // Convertir de dólares a pesos (los precios crudos vienen en USD).
-  const rate = await getMoneyRate();
-  if (rate !== 1) {
-    for (const [t, q] of map) {
-      map.set(t, {
-        ...q,
-        price: Math.round(q.price * rate * 100) / 100,
-      });
-    }
+  // `price` pasa a ser MXN (moneda de cálculo); `priceUsd` conserva el
+  // precio nativo en dólares para mostrarlo como referencia en la UI.
+  const rate = getMoneyRate();
+  for (const [t, q] of map) {
+    map.set(t, {
+      ...q,
+      price: Math.round(q.priceUsd * rate * 100) / 100,
+    });
   }
   return map;
 }
@@ -274,4 +265,24 @@ export async function searchTickers(
     }
   }
   return demoSearchTickers(query);
+}
+
+/**
+ * Sobrepone en `quotes` el precio de las acciones personalizadas del grupo
+ * (fijo, definido por un miembro) — tiene prioridad sobre cualquier
+ * cotización real o demo que hubiera para ese mismo símbolo.
+ */
+export function applyCustomTickers(
+  quotes: Map<string, Quote>,
+  customTickers: CustomTicker[],
+): void {
+  for (const ct of customTickers) {
+    quotes.set(ct.ticker, {
+      ticker: ct.ticker,
+      name: ct.companyName,
+      price: Math.round(ct.priceUsd * USD_MXN_RATE * 100) / 100,
+      priceUsd: ct.priceUsd,
+      changePct: null,
+    });
+  }
 }

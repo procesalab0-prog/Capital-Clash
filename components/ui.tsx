@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { fmtMoneySigned, fmtPct } from "@/lib/format";
+import { fmtMoney, fmtMoneySigned, fmtPct, fmtUsd, USD_MXN_RATE } from "@/lib/format";
 
 export function Card({
   children,
@@ -57,6 +57,32 @@ export function PnlText({
       {value !== undefined && pct !== undefined && " · "}
       {pct !== undefined && fmtPct(pct)}
     </span>
+  );
+}
+
+/**
+ * Precio de una acción: dólares como cifra principal (moneda nativa de la
+ * bolsa) con su equivalente en pesos como referencia debajo.
+ */
+export function DualPrice({
+  usd,
+  size = "md",
+}: {
+  usd: number;
+  size?: "sm" | "md" | "lg";
+}) {
+  const sizes = {
+    sm: "text-sm",
+    md: "text-lg",
+    lg: "text-xl",
+  };
+  return (
+    <div>
+      <p className={`figures font-extrabold ${sizes[size]}`}>{fmtUsd(usd)}</p>
+      <p className="figures text-xs font-semibold text-muted">
+        ≈ {fmtMoney(usd * USD_MXN_RATE)}
+      </p>
+    </div>
   );
 }
 

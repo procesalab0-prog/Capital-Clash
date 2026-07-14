@@ -2,17 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PnlText, SubCard } from "@/components/ui";
+import { DualPrice, PnlText, SubCard } from "@/components/ui";
 
 interface MarketQuote {
   ticker: string;
   name: string;
-  price: number;
+  priceUsd: number;
   changePct: number | null;
+  custom?: boolean;
 }
-
-const money = (v: number) =>
-  v.toLocaleString("es-MX", { style: "currency", currency: "MXN" });
 
 /**
  * Lista de acciones del Mercado con buscador. Cualquier miembro puede ver
@@ -55,7 +53,14 @@ export function MarketList({
             <SubCard key={s.ticker} className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="figures font-extrabold">{s.ticker}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="figures font-extrabold">{s.ticker}</p>
+                    {s.custom && (
+                      <span className="rounded-full border-2 border-line px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-muted">
+                        Personalizada
+                      </span>
+                    )}
+                  </div>
                   <p className="truncate text-xs font-semibold text-muted">
                     {s.name}
                   </p>
@@ -64,9 +69,9 @@ export function MarketList({
                   <PnlText pct={s.changePct} className="shrink-0 text-xs" />
                 )}
               </div>
-              <p className="figures mt-3 text-xl font-extrabold">
-                {money(s.price)}
-              </p>
+              <div className="mt-3">
+                <DualPrice usd={s.priceUsd} size="lg" />
+              </div>
               {canPropose && (
                 <Link
                   href={`/g/${groupId}/propuestas?ticker=${encodeURIComponent(s.ticker)}&name=${encodeURIComponent(s.name)}`}

@@ -1,4 +1,5 @@
 import type {
+  CustomTicker,
   FundSnapshot,
   Group,
   GroupMember,
@@ -111,6 +112,16 @@ export interface DataProvider {
   // Snapshots del fondo (gráfica / Índice Capital Clash)
   getSnapshots(seasonId: string): Promise<FundSnapshot[]>;
   upsertSnapshot(seasonId: string, snapshot: FundSnapshot): Promise<void>;
+
+  // Acciones personalizadas (empresas que no aparecen en el mercado)
+  getCustomTickers(groupId: string): Promise<CustomTicker[]>;
+  createCustomTicker(input: {
+    groupId: string;
+    ticker: string;
+    companyName: string;
+    priceUsd: number;
+    createdBy: string;
+  }): Promise<CustomTicker>;
 }
 
 export function isDemoMode(): boolean {

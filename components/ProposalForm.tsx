@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { btnPrimary, inputCls, PnlText } from "@/components/ui";
+import { btnPrimary, DualPrice, inputCls, PnlText } from "@/components/ui";
 import type { Quote, TickerSearchResult } from "@/lib/types";
 
 interface SellablePosition {
@@ -22,14 +22,18 @@ export function ProposalForm({
   action,
   positions,
   cash,
+  groupId,
   initialTicker,
   initialName,
+  customTickers = [],
 }: {
   action: (formData: FormData) => void;
   positions: SellablePosition[];
   cash: number;
+  groupId: string;
   initialTicker?: string;
   initialName?: string;
+  customTickers?: TickerSearchResult[];
 }) {
   const hasInitial = Boolean(initialTicker);
   const [type, setType] = useState<"buy" | "sell">("buy");
@@ -54,17 +58,25 @@ export function ProposalForm({
       return;
     }
     debounce.current = setTimeout(async () => {
+      const q = query.trim().toUpperCase();
+      const customMatches = customTickers.filter(
+        (c) => c.ticker.includes(q) || c.name.toUpperCase().includes(q),
+      );
       try {
         const res = await fetch(`/api/tickers?q=${encodeURIComponent(query)}`);
-        if (res.ok) {
-          setResults(await res.json());
-          setOpen(true);
-        }
+        const fetched: TickerSearchResult[] = res.ok ? await res.json() : [];
+        const seen = new Set(customMatches.map((c) => c.ticker));
+        setResults([
+          ...customMatches,
+          ...fetched.filter((r) => !seen.has(r.ticker)),
+        ]);
+        setOpen(true);
       } catch {
-        setResults([]);
+        setResults(customMatches);
+        if (customMatches.length > 0) setOpen(true);
       }
     }, 250);
-  }, [query, selected]);
+  }, [query, selected, customTickers]);
 
   // Ticker activo según el modo (compra: seleccionado; venta: posición).
   const activeTicker = type === "buy" ? selected?.ticker ?? null : sellTicker || null;
@@ -77,7 +89,9 @@ export function ProposalForm({
     }
     let cancelled = false;
     setLoadingQuote(true);
-    fetch(`/api/quote?ticker=${encodeURIComponent(activeTicker)}`)
+    fetch(
+      `/api/quote?ticker=${encodeURIComponent(activeTicker)}&groupId=${encodeURIComponent(groupId)}`,
+    )
       .then((r) => (r.ok ? r.json() : null))
       .then((q) => {
         if (!cancelled) setQuote(q);
@@ -91,7 +105,7 @@ export function ProposalForm({
     return () => {
       cancelled = true;
     };
-  }, [activeTicker]);
+  }, [activeTicker, groupId]);
 
   const sellPos = positions.find((p) => p.ticker === sellTicker);
   const amountNum = Number(amount);
@@ -112,7 +126,7 @@ export function ProposalForm({
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
                 Precio actual · {quote.ticker}
               </p>
-              <p className="figures text-lg font-extrabold">{money(quote.price)}</p>
+              <DualPrice usd={quote.priceUsd} />
             </div>
             {quote.changePct !== null && <PnlText pct={quote.changePct} className="text-xs" />}
           </div>

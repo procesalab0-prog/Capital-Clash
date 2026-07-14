@@ -1,3 +1,10 @@
+/**
+ * Tipo de cambio USD→MXN fijo (ver comentario extenso en lib/prices.ts).
+ * Vive aquí (no en lib/prices.ts) porque este módulo no tiene dependencias
+ * de servidor y lo pueden importar tanto Server como Client Components.
+ */
+export const USD_MXN_RATE = 18.5;
+
 const currencyFmt = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
@@ -11,8 +18,20 @@ const compactCurrencyFmt = new Intl.NumberFormat("es-MX", {
   maximumFractionDigits: 0,
 });
 
+const usdFmt = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function fmtMoney(value: number): string {
   return currencyFmt.format(value);
+}
+
+/** Precio de una acción en dólares (moneda nativa de las bolsas de EU). */
+export function fmtUsd(value: number): string {
+  return usdFmt.format(value);
 }
 
 export function fmtMoneyCompact(value: number): string {

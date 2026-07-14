@@ -1,3 +1,4 @@
+import { USD_MXN_RATE } from "./format";
 import type {
   FundSnapshot,
   ParticipantStanding,
@@ -59,7 +60,8 @@ export function computePositions(
   const positions: Position[] = [];
   for (const [ticker, lot] of lots) {
     if (lot.shares <= 0) continue;
-    const currentPrice = quotes.get(ticker)?.price ?? lot.avgCost;
+    const quote = quotes.get(ticker);
+    const currentPrice = quote?.price ?? lot.avgCost;
     const invested = lot.shares * lot.avgCost;
     const currentValue = lot.shares * currentPrice;
     positions.push({
@@ -69,6 +71,7 @@ export function computePositions(
       avgCost: lot.avgCost,
       invested,
       currentPrice,
+      currentPriceUsd: quote?.priceUsd ?? currentPrice / USD_MXN_RATE,
       currentValue,
       pnl: currentValue - invested,
       pnlPct: invested > 0 ? ((currentValue - invested) / invested) * 100 : 0,

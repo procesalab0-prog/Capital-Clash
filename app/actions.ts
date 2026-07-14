@@ -4,9 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getProvider, isDemoMode } from "@/lib/data/provider";
-import { DEMO_COOKIE, getSessionUser } from "@/lib/session";
-import { castVoteAndResolve, closeSeason, executeProposal } from "@/lib/game";
-import { getQuote } from "@/lib/prices";
+import { DEMO_COOKIE, getSessionUserForRoute as getSessionUser } from "@/lib/session";
+import {
+  castVoteAndResolve,
+  closeSeason,
+  executeProposal,
+  resolveGroupQuote,
+} from "@/lib/game";
 import { addDaysISO, todayISO } from "@/lib/format";
 import type { GroupMode, TradeType, VoteValue } from "@/lib/types";
 
@@ -99,6 +103,42 @@ export async function deleteGroupAction(groupId: string) {
   await provider.deleteGroup(groupId);
   revalidatePath("/grupos");
   redirect("/grupos");
+}
+
+// ---------------------------------------------------------------------------
+// Mercado — acciones personalizadas
+// ---------------------------------------------------------------------------
+
+export async function createCustomTickerAction(groupId: string, formData: FormData) {
+  const { user, provider } = await requireMembership(groupId);
+  const path = `/g/${groupId}/mercado`;
+
+  const ticker = String(formData.get("ticker") ?? "").trim().toUpperCase();
+  const companyName = String(formData.get("companyName") ?? "").trim();
+  const priceUsd = Number(formData.get("priceUsd"));
+
+  if (!/^[A-Z0-9._-]{1,10}$/.test(ticker)) {
+    fail(path, "El símbolo debe tener letras/números, máximo 10 caracteres.");
+  }
+  if (!companyName) fail(path, "Ponle un nombre a la empresa.");
+  if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
+    fail(path, "El precio debe ser mayor a 0.");
+  }
+
+  const existing = await provider.getCustomTickers(groupId);
+  if (existing.some((c) => c.ticker === ticker)) {
+    fail(path, `Ya existe una acción personalizada con el símbolo “${ticker}”.`);
+  }
+
+  await provider.createCustomTicker({
+    groupId,
+    ticker,
+    companyName,
+    priceUsd,
+    createdBy: user.id,
+  });
+  revalidatePath(`/g/${groupId}`, "layout");
+  redirect(path);
 }
 
 // ---------------------------------------------------------------------------
@@ -346,7 +386,7 @@ export async function executeApprovedAction(
 
   let price = Number(formData.get("price"));
   if (!Number.isFinite(price) || price <= 0) {
-    price = (await getQuote(proposal.ticker)).price;
+    price = (await resolveGroupQuote(provider, groupId, proposal.ticker)).price;
   }
   const result = await executeProposal(provider, proposal, season, price);
   revalidatePath(`/g/${groupId}`, "layout");

@@ -1,6 +1,7 @@
-import { addDaysISO, todayISO } from "../format";
-import { demoPriceAt, USD_MXN_FALLBACK } from "../prices";
+import { addDaysISO, todayISO, USD_MXN_RATE } from "../format";
+import { demoPriceAt } from "../prices";
 import type {
+  CustomTicker,
   FundSnapshot,
   Group,
   GroupMember,
@@ -40,6 +41,7 @@ interface DemoStore {
   votes: Vote[];
   transactions: Transaction[];
   snapshots: Map<string, FundSnapshot[]>; // por seasonId
+  customTickers: CustomTicker[];
   counter: number;
 }
 
@@ -96,6 +98,7 @@ function seedStore(): DemoStore {
     votes: [],
     transactions: [],
     snapshots: new Map(),
+    customTickers: [],
     counter: 1,
   };
 
@@ -193,7 +196,7 @@ function seedStore(): DemoStore {
   for (const op of executed) {
     const date = addDaysISO(start, op.day);
     // Precio en pesos (las acciones cotizan en USD; la app muestra MXN).
-    const price = demoPriceAt(op.ticker, date) * USD_MXN_FALLBACK;
+    const price = demoPriceAt(op.ticker, date) * USD_MXN_RATE;
     let shares: number;
     if (op.type === "buy") {
       shares = Math.round((op.amountUsd! / price) * 10000) / 10000;
@@ -589,6 +592,25 @@ export const demoProvider: DataProvider = {
     else list.push(snapshot);
     list.sort((a, b) => a.date.localeCompare(b.date));
     s.snapshots.set(seasonId, list);
+  },
+
+  async getCustomTickers(groupId) {
+    return store().customTickers.filter((c) => c.groupId === groupId);
+  },
+
+  async createCustomTicker(input) {
+    const s = store();
+    const ticker: CustomTicker = {
+      id: newId("ct"),
+      groupId: input.groupId,
+      ticker: input.ticker.toUpperCase(),
+      companyName: input.companyName,
+      priceUsd: input.priceUsd,
+      createdBy: input.createdBy,
+      createdAt: new Date().toISOString(),
+    };
+    s.customTickers.push(ticker);
+    return ticker;
   },
 };
 
