@@ -17,6 +17,7 @@ import {
   PageTitle,
 } from "@/components/ui";
 import { ProposalForm } from "@/components/ProposalForm";
+import { ProposalActions } from "@/components/ProposalActions";
 
 function hoursLeft(expiresAt: string): number {
   return Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 3600_000));
@@ -38,12 +39,12 @@ export default async function ProposalsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; ticker?: string; name?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, ticker: initialTicker, name: initialName } = await searchParams;
   const ctx = await getGroupContext(id);
-  const { group, season, proposals, participants, positions, summary, user, role } = ctx;
+  const { group, season, proposals, participants, positions, summary, quotes, user, role } = ctx;
 
   if (!season || season.status !== "active" || !summary) {
     return (
@@ -88,11 +89,18 @@ export default async function ProposalsPage({
             {statusBadge[p.status].label}
           </Badge>
         </div>
-        <p className="figures mt-2.5 text-sm">
-          {p.type === "buy"
-            ? `Invertir ${fmtMoney(p.amountUsd ?? 0)}`
-            : `Vender ${fmtShares(p.shares ?? 0)} títulos`}
-        </p>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span className="figures">
+            {p.type === "buy"
+              ? `Invertir ${fmtMoney(p.amountUsd ?? 0)}`
+              : `Vender ${fmtShares(p.shares ?? 0)} títulos`}
+          </span>
+          {quotes.get(p.ticker) && (
+            <span className="figures text-xs text-muted">
+              Precio actual: {fmtMoney(quotes.get(p.ticker)!.price)}
+            </span>
+          )}
+        </div>
         <p className="mt-2 text-sm font-semibold italic leading-relaxed text-ink2">
           “{p.thesis}”
         </p>
@@ -180,6 +188,19 @@ export default async function ProposalsPage({
             )}
           </div>
         )}
+
+        {p.status !== "executed" &&
+          (p.proposedBy === user.id || role === "admin") && (
+            <ProposalActions
+              groupId={group.id}
+              proposalId={p.id}
+              type={p.type}
+              amountUsd={p.amountUsd}
+              shares={p.shares}
+              thesis={p.thesis}
+              canEdit={p.status === "pending"}
+            />
+          )}
       </div>
     );
   }
@@ -234,6 +255,8 @@ export default async function ProposalsPage({
                 shares: p.shares,
               }))}
               cash={summary.cash}
+              initialTicker={initialTicker}
+              initialName={initialName}
             />
           </Card>
         </div>

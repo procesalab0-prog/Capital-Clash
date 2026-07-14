@@ -79,6 +79,28 @@ export async function joinGroupAction(formData: FormData) {
   redirect(`/g/${group.id}`);
 }
 
+export async function updateGroupAction(groupId: string, formData: FormData) {
+  const { provider, role } = await requireMembership(groupId);
+  if (role !== "admin") fail(`/g/${groupId}`, "Solo el administrador puede editar el grupo.");
+  const name = String(formData.get("name") ?? "").trim();
+  const mode = String(formData.get("mode") ?? "") as GroupMode;
+  if (!name) fail(`/g/${groupId}`, "El grupo necesita un nombre.");
+  await provider.updateGroup(groupId, {
+    name,
+    mode: mode === "real" || mode === "simulado" ? mode : undefined,
+  });
+  revalidatePath(`/g/${groupId}`, "layout");
+  redirect(`/g/${groupId}`);
+}
+
+export async function deleteGroupAction(groupId: string) {
+  const { provider, role } = await requireMembership(groupId);
+  if (role !== "admin") fail(`/g/${groupId}`, "Solo el administrador puede eliminar el grupo.");
+  await provider.deleteGroup(groupId);
+  revalidatePath("/grupos");
+  redirect("/grupos");
+}
+
 // ---------------------------------------------------------------------------
 // Temporadas
 // ---------------------------------------------------------------------------
@@ -207,6 +229,67 @@ export async function createProposalAction(
   if (result.error) {
     fail(path, `Aprobada, pero no se pudo ejecutar: ${result.error}`);
   }
+  redirect(path);
+}
+
+export async function editProposalAction(
+  groupId: string,
+  proposalId: string,
+  formData: FormData,
+) {
+  const { user, provider, role } = await requireMembership(groupId);
+  const path = `/g/${groupId}/propuestas`;
+  const proposal = await provider.getProposal(proposalId);
+  if (!proposal) fail(path, "Propuesta no encontrada.");
+  if (proposal.status !== "pending") {
+    fail(path, "Solo se pueden editar propuestas en votación.");
+  }
+  if (proposal.proposedBy !== user.id && role !== "admin") {
+    fail(path, "Solo quien propuso (o el admin) puede editar la propuesta.");
+  }
+
+  const thesis = String(formData.get("thesis") ?? "").trim();
+  if (!thesis) fail(path, "La tesis no puede quedar vacía.");
+
+  const fields: { amountUsd?: number | null; shares?: number | null; thesis: string } = {
+    thesis,
+  };
+  if (proposal.type === "buy") {
+    const amountUsd = Number(formData.get("amountUsd"));
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) {
+      fail(path, "El monto a invertir debe ser mayor a 0.");
+    }
+    fields.amountUsd = amountUsd;
+  } else {
+    const shares = Number(formData.get("shares"));
+    if (!Number.isFinite(shares) || shares <= 0) {
+      fail(path, "El número de acciones debe ser mayor a 0.");
+    }
+    fields.shares = shares;
+  }
+
+  await provider.updateProposal(proposalId, fields);
+  // Cambiaron los términos: se reinicia la votación y quien propone vuelve a
+  // votar "sí".
+  await provider.clearVotes(proposalId);
+  await provider.castVote(proposalId, user.id, "yes");
+  revalidatePath(`/g/${groupId}`, "layout");
+  redirect(path);
+}
+
+export async function deleteProposalAction(groupId: string, proposalId: string) {
+  const { user, provider, role } = await requireMembership(groupId);
+  const path = `/g/${groupId}/propuestas`;
+  const proposal = await provider.getProposal(proposalId);
+  if (!proposal) fail(path, "Propuesta no encontrada.");
+  if (proposal.status === "executed") {
+    fail(path, "No se puede eliminar una propuesta ya ejecutada (rompería el historial).");
+  }
+  if (proposal.proposedBy !== user.id && role !== "admin") {
+    fail(path, "Solo quien propuso (o el admin) puede eliminar la propuesta.");
+  }
+  await provider.deleteProposal(proposalId);
+  revalidatePath(`/g/${groupId}`, "layout");
   redirect(path);
 }
 

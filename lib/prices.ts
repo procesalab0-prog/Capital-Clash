@@ -22,6 +22,64 @@ export function hasRealPrices(): boolean {
   return fmpKey() !== null;
 }
 
+/**
+ * Tipo de cambio USD→MXN. Las acciones cotizan en dólares; la app muestra
+ * todo en pesos. Con FMP se usa el tipo real (cacheado 1 h); sin key, un
+ * valor de respaldo fijo.
+ */
+export const USD_MXN_FALLBACK = 18.5;
+
+const fetchUsdMxnRate = unstable_cache(
+  async (): Promise<number> => {
+    const key = fmpKey();
+    if (!key) return USD_MXN_FALLBACK;
+    try {
+      const res = await fetch(`${FMP_BASE}/quote/USDMXN?apikey=${key}`);
+      if (!res.ok) return USD_MXN_FALLBACK;
+      const data = (await res.json()) as { price?: number }[];
+      const p = data?.[0]?.price;
+      return typeof p === "number" && p > 0 ? p : USD_MXN_FALLBACK;
+    } catch {
+      return USD_MXN_FALLBACK;
+    }
+  },
+  ["usd-mxn-rate"],
+  { revalidate: 3600 },
+);
+
+/** Pesos por dólar (para convertir precios de acciones a MXN). */
+export async function getMoneyRate(): Promise<number> {
+  return fetchUsdMxnRate();
+}
+
+/** Acciones populares que se muestran en la pestaña Mercado. */
+export const POPULAR_TICKERS = [
+  "AAPL",
+  "MSFT",
+  "NVDA",
+  "AMZN",
+  "GOOGL",
+  "META",
+  "TSLA",
+  "NFLX",
+  "AMD",
+  "JPM",
+  "V",
+  "MA",
+  "DIS",
+  "KO",
+  "PEP",
+  "MCD",
+  "NKE",
+  "SBUX",
+  "UBER",
+  "SHOP",
+  "PLTR",
+  "COIN",
+  "VOO",
+  "QQQ",
+];
+
 // ---------------------------------------------------------------------------
 // Precios demo deterministas
 // ---------------------------------------------------------------------------
@@ -184,6 +242,16 @@ export async function getQuotes(
   }
   for (const t of unique) {
     if (!map.has(t)) map.set(t, demoQuote(t, today));
+  }
+  // Convertir de dólares a pesos (los precios crudos vienen en USD).
+  const rate = await getMoneyRate();
+  if (rate !== 1) {
+    for (const [t, q] of map) {
+      map.set(t, {
+        ...q,
+        price: Math.round(q.price * rate * 100) / 100,
+      });
+    }
   }
   return map;
 }

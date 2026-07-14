@@ -27,7 +27,7 @@ export function FundChart({ data }: { data: FundSnapshot[] }) {
   const money = (v: number) =>
     v.toLocaleString("es-MX", {
       style: "currency",
-      currency: "USD",
+      currency: "MXN",
       maximumFractionDigits: 0,
     });
   const shortDate = (iso: string) =>

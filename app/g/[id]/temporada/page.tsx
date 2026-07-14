@@ -113,7 +113,7 @@ export default async function SeasonPage({
               />
               <div>
                 <label className="mb-1 block text-xs text-muted">
-                  Aportación por participante (USD)
+                  Aportación por participante (MXN)
                 </label>
                 <input
                   name="contribution"

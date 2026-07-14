@@ -230,9 +230,14 @@ create policy "profiles_select" on public.profiles
 create policy "profiles_update_own" on public.profiles
   for update to authenticated using (id = auth.uid());
 
--- Grupos: solo los ve quien es miembro. Altas vía RPC create_group.
+-- Grupos: solo los ve quien es miembro. Altas vía RPC create_group;
+-- solo el admin puede editar o eliminar el grupo.
 create policy "groups_select_member" on public.groups
   for select to authenticated using (public.is_group_member (id));
+create policy "groups_update_admin" on public.groups
+  for update to authenticated using (public.is_group_admin (id));
+create policy "groups_delete_admin" on public.groups
+  for delete to authenticated using (public.is_group_admin (id));
 
 -- Miembros: visibles dentro del grupo. Altas vía RPCs.
 create policy "members_select" on public.group_members
@@ -268,6 +273,13 @@ create policy "proposals_insert_member" on public.proposals
 create policy "proposals_update_member" on public.proposals
   for update to authenticated
   using (public.is_group_member (public.season_group (season_id)));
+-- Eliminar: solo el autor de la propuesta o el admin del grupo.
+create policy "proposals_delete_own_or_admin" on public.proposals
+  for delete to authenticated
+  using (
+    proposed_by = auth.uid()
+    or public.is_group_admin (public.season_group (season_id))
+  );
 
 -- Votos: cada quien el suyo, dentro de su grupo.
 create policy "votes_select" on public.votes
@@ -291,6 +303,20 @@ create policy "votes_upsert_own" on public.votes
   );
 create policy "votes_update_own" on public.votes
   for update to authenticated using (user_id = auth.uid());
+-- Eliminar votos (al editar una propuesta se reinicia la votación):
+-- el autor de la propuesta o el admin.
+create policy "votes_delete_by_proposer_or_admin" on public.votes
+  for delete to authenticated
+  using (
+    exists (
+      select 1 from public.proposals p
+      where p.id = proposal_id
+        and (
+          p.proposed_by = auth.uid()
+          or public.is_group_admin (public.season_group (p.season_id))
+        )
+    )
+  );
 
 -- Transacciones: miembros leen y registran (la app valida la lógica).
 create policy "transactions_select" on public.transactions

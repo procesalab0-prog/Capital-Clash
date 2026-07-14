@@ -1,13 +1,13 @@
 const currencyFmt = new Intl.NumberFormat("es-MX", {
   style: "currency",
-  currency: "USD",
+  currency: "MXN",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
 const compactCurrencyFmt = new Intl.NumberFormat("es-MX", {
   style: "currency",
-  currency: "USD",
+  currency: "MXN",
   maximumFractionDigits: 0,
 });
 

@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getProvider, isDemoMode } from "./data/provider";
 import type { DataProvider, ProposalWithVotes } from "./data/provider";
 import { getSessionUser } from "./session";
-import { getQuotes, demoPriceAt, BENCHMARK_TICKER } from "./prices";
+import { getQuotes, demoPriceAt, getMoneyRate, BENCHMARK_TICKER } from "./prices";
 import {
   computePositions,
   computeSummary,
@@ -117,11 +117,12 @@ export async function getFundSeries(ctx: GroupContext): Promise<FundSnapshot[]> 
       ctx.season.status === "closed" && ctx.season.closedAt
         ? ctx.season.closedAt.slice(0, 10)
         : todayISO();
+    const rate = await getMoneyRate();
     const series = computeFundSeries(
       ctx.season,
       ctx.transactions,
       ctx.initialCapital,
-      demoPriceAt,
+      (ticker, dateISO) => demoPriceAt(ticker, dateISO) * rate,
       last,
     );
     // El punto de hoy usa las cotizaciones vivas para cuadrar con las tarjetas.

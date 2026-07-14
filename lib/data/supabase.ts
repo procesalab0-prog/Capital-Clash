@@ -225,6 +225,25 @@ export function createSupabaseProvider(): DataProvider {
       return mapGroup(data);
     },
 
+    async updateGroup(groupId, fields) {
+      const supabase = await client();
+      const patch: Record<string, unknown> = {};
+      if (fields.name !== undefined) patch.name = fields.name;
+      if (fields.mode !== undefined) patch.mode = fields.mode;
+      if (Object.keys(patch).length === 0) return;
+      const { error } = await supabase
+        .from("groups")
+        .update(patch)
+        .eq("id", groupId);
+      if (error) throw error;
+    },
+
+    async deleteGroup(groupId) {
+      const supabase = await client();
+      const { error } = await supabase.from("groups").delete().eq("id", groupId);
+      if (error) throw error;
+    },
+
     async getSeasons(groupId) {
       const supabase = await client();
       const { data } = await supabase
@@ -358,6 +377,38 @@ export function createSupabaseProvider(): DataProvider {
         .single();
       if (error) throw error;
       return mapProposal(data);
+    },
+
+    async updateProposal(proposalId, fields) {
+      const supabase = await client();
+      const patch: Record<string, unknown> = {};
+      if (fields.amountUsd !== undefined) patch.amount_usd = fields.amountUsd;
+      if (fields.shares !== undefined) patch.shares = fields.shares;
+      if (fields.thesis !== undefined) patch.thesis = fields.thesis;
+      if (Object.keys(patch).length === 0) return;
+      const { error } = await supabase
+        .from("proposals")
+        .update(patch)
+        .eq("id", proposalId);
+      if (error) throw error;
+    },
+
+    async deleteProposal(proposalId) {
+      const supabase = await client();
+      const { error } = await supabase
+        .from("proposals")
+        .delete()
+        .eq("id", proposalId);
+      if (error) throw error;
+    },
+
+    async clearVotes(proposalId) {
+      const supabase = await client();
+      const { error } = await supabase
+        .from("votes")
+        .delete()
+        .eq("proposal_id", proposalId);
+      if (error) throw error;
     },
 
     async castVote(proposalId, userId, value) {

@@ -1,5 +1,5 @@
 import { addDaysISO, todayISO } from "../format";
-import { demoPriceAt } from "../prices";
+import { demoPriceAt, USD_MXN_FALLBACK } from "../prices";
 import type {
   FundSnapshot,
   Group,
@@ -192,7 +192,8 @@ function seedStore(): DemoStore {
   let nvdaShares = 0;
   for (const op of executed) {
     const date = addDaysISO(start, op.day);
-    const price = demoPriceAt(op.ticker, date);
+    // Precio en pesos (las acciones cotizan en USD; la app muestra MXN).
+    const price = demoPriceAt(op.ticker, date) * USD_MXN_FALLBACK;
     let shares: number;
     if (op.type === "buy") {
       shares = Math.round((op.amountUsd! / price) * 10000) / 10000;
@@ -411,6 +412,31 @@ export const demoProvider: DataProvider = {
     return group;
   },
 
+  async updateGroup(groupId, fields) {
+    const group = store().groups.find((gr) => gr.id === groupId);
+    if (!group) return;
+    if (fields.name !== undefined) group.name = fields.name;
+    if (fields.mode !== undefined) group.mode = fields.mode;
+  },
+
+  async deleteGroup(groupId) {
+    const s = store();
+    const seasonIds = new Set(
+      s.seasons.filter((se) => se.groupId === groupId).map((se) => se.id),
+    );
+    const proposalIds = new Set(
+      s.proposals.filter((p) => seasonIds.has(p.seasonId)).map((p) => p.id),
+    );
+    s.votes = s.votes.filter((v) => !proposalIds.has(v.proposalId));
+    s.proposals = s.proposals.filter((p) => !seasonIds.has(p.seasonId));
+    s.transactions = s.transactions.filter((t) => !seasonIds.has(t.seasonId));
+    s.participants = s.participants.filter((p) => !seasonIds.has(p.seasonId));
+    for (const sid of seasonIds) s.snapshots.delete(sid);
+    s.seasons = s.seasons.filter((se) => se.groupId !== groupId);
+    s.members = s.members.filter((m) => m.groupId !== groupId);
+    s.groups = s.groups.filter((gr) => gr.id !== groupId);
+  },
+
   async getSeasons(groupId) {
     return store()
       .seasons.filter((se) => se.groupId === groupId)
@@ -492,6 +518,25 @@ export const demoProvider: DataProvider = {
     };
     s.proposals.push(proposal);
     return proposal;
+  },
+
+  async updateProposal(proposalId, fields) {
+    const p = store().proposals.find((x) => x.id === proposalId);
+    if (!p) return;
+    if (fields.amountUsd !== undefined) p.amountUsd = fields.amountUsd;
+    if (fields.shares !== undefined) p.shares = fields.shares;
+    if (fields.thesis !== undefined) p.thesis = fields.thesis;
+  },
+
+  async deleteProposal(proposalId) {
+    const s = store();
+    s.votes = s.votes.filter((v) => v.proposalId !== proposalId);
+    s.proposals = s.proposals.filter((p) => p.id !== proposalId);
+  },
+
+  async clearVotes(proposalId) {
+    const s = store();
+    s.votes = s.votes.filter((v) => v.proposalId !== proposalId);
   },
 
   async castVote(proposalId, userId, value) {

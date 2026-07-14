@@ -74,6 +74,11 @@ export interface DataProvider {
   createGroup(name: string, mode: GroupMode, userId: string): Promise<Group>;
   /** Devuelve el grupo si el código existe (y agrega al usuario como miembro). */
   joinGroup(inviteCode: string, userId: string): Promise<Group | null>;
+  updateGroup(
+    groupId: string,
+    fields: { name?: string; mode?: GroupMode },
+  ): Promise<void>;
+  deleteGroup(groupId: string): Promise<void>;
 
   // Temporadas
   getSeasons(groupId: string): Promise<Season[]>;
@@ -90,6 +95,12 @@ export interface DataProvider {
   getProposals(seasonId: string): Promise<ProposalWithVotes[]>;
   getProposal(proposalId: string): Promise<ProposalWithVotes | null>;
   createProposal(input: NewProposalInput): Promise<Proposal>;
+  updateProposal(
+    proposalId: string,
+    fields: { amountUsd?: number | null; shares?: number | null; thesis?: string },
+  ): Promise<void>;
+  deleteProposal(proposalId: string): Promise<void>;
+  clearVotes(proposalId: string): Promise<void>;
   castVote(proposalId: string, userId: string, value: VoteValue): Promise<void>;
   setProposalStatus(proposalId: string, status: ProposalStatus): Promise<void>;
 
