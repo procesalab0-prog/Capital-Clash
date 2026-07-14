@@ -11,6 +11,7 @@ import {
   PnlText,
   StatCard,
 } from "@/components/ui";
+import { Mascot } from "@/components/Mascot";
 
 const confettiPieces = [
   { top: 0, left: "8%", color: "var(--accent)", delay: "0s" },
@@ -79,6 +80,7 @@ export default async function RankingPage({
             ? `Temporada cerrada el ${season.closedAt ? fmtDate(season.closedAt.slice(0, 10)) : ""} con ${fmtMoney(season.finalValue ?? 0)}. 🎉`
             : "La puntuación es el rendimiento de tus propuestas ejecutadas más un bono por puntería al votar."
         }
+        action={isClosed ? <Mascot pose="caminando-guino" size={72} /> : undefined}
       />
 
       {/* Podio */}

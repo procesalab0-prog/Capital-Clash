@@ -37,6 +37,7 @@ export default async function GroupsPage({
 
       {groups.length === 0 ? (
         <EmptyState
+          mascot="selfie"
           title="Todavía no estás en ningún grupo"
           hint="Crea tu propio fondo o únete a uno con el código de invitación que te compartan."
         />

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
 import { btnPrimary, Card } from "@/components/ui";
 import { LogoMark } from "@/components/Logo";
+import { Mascot } from "@/components/Mascot";
 
 const steps = [
   {
@@ -43,23 +44,31 @@ export default async function Home() {
 
   return (
     <div className="py-8 sm:py-14">
-      <section className="mx-auto flex max-w-3xl flex-col items-center text-center">
-        <LogoMark size={96} className="hard-shadow-accent rounded-3xl border-4" />
-        <h1 className="mt-6 text-5xl font-black leading-[0.95] tracking-tighter sm:text-7xl">
-          CAPITAL
-          <br />
-          <span className="text-accent">CLASH</span>
-        </h1>
-        <p className="mt-4 text-lg font-extrabold tracking-tight">
-          Tu fondo. Tu equipo. Tu victoria.
-        </p>
-        <p className="mx-auto mt-2 max-w-xl font-semibold text-ink2">
-          Arma un fondo con tus amigos: propongan acciones reales, voten cada
-          decisión y compitan por el mejor rendimiento de la temporada.
-        </p>
-        <Link href="/login" className={`${btnPrimary} mt-8 px-8 py-4 text-base`}>
-          ¡Vamos a jugar! →
-        </Link>
+      <section className="mx-auto flex max-w-4xl flex-col items-center gap-8 text-center lg:flex-row lg:text-left">
+        <div className="flex flex-1 flex-col items-center lg:items-start">
+          <LogoMark size={96} className="hard-shadow-accent rounded-3xl border-4" />
+          <h1 className="mt-6 text-5xl font-black leading-[0.95] tracking-tighter sm:text-7xl">
+            CAPITAL
+            <br />
+            <span className="text-accent">CLASH</span>
+          </h1>
+          <p className="mt-4 text-lg font-extrabold tracking-tight">
+            Tu fondo. Tu equipo. Tu victoria.
+          </p>
+          <p className="mx-auto mt-2 max-w-xl font-semibold text-ink2 lg:mx-0">
+            Arma un fondo con tus amigos: propongan acciones reales, voten
+            cada decisión y compitan por el mejor rendimiento de la
+            temporada.
+          </p>
+          <Link href="/login" className={`${btnPrimary} mt-8 px-8 py-4 text-base`}>
+            ¡Vamos a jugar! →
+          </Link>
+        </div>
+        <Mascot
+          pose="selfie"
+          size={220}
+          className="hard-shadow-accent hidden shrink-0 border-4 sm:block"
+        />
       </section>
 
       <section className="mx-auto mt-14 grid max-w-4xl gap-5 sm:grid-cols-3">

@@ -3,7 +3,7 @@ import { isDemoMode } from "@/lib/data/provider";
 import { getSessionUser } from "@/lib/session";
 import { demoLoginAction } from "@/app/actions";
 import { Avatar, Badge, Card } from "@/components/ui";
-import { LogoMark } from "@/components/Logo";
+import { Mascot } from "@/components/Mascot";
 import { SupabaseLoginForm } from "@/components/SupabaseLoginForm";
 
 export default async function LoginPage() {
@@ -14,7 +14,7 @@ export default async function LoginPage() {
     return (
       <div className="mx-auto max-w-sm py-10">
         <div className="mb-6 flex items-center gap-4">
-          <LogoMark size={54} />
+          <Mascot pose="caminando-selfie" size={64} />
           <div className="rounded-2xl rounded-bl-md border-[3px] border-line bg-surface px-4 py-2.5 text-sm font-extrabold">
             ¿Quién juega hoy?
           </div>
@@ -28,7 +28,7 @@ export default async function LoginPage() {
   return (
     <div className="mx-auto max-w-md py-10">
       <div className="mb-4 flex items-center gap-4">
-        <LogoMark size={54} />
+        <Mascot pose="caminando-selfie" size={64} />
         <div className="rounded-2xl rounded-bl-md border-[3px] border-line bg-surface px-4 py-2.5 text-sm font-extrabold">
           ¿Quién juega hoy?
         </div>

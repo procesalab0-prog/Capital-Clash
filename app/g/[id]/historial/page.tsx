@@ -27,6 +27,7 @@ export default async function HistoryPage({
       />
       {transactions.length === 0 ? (
         <EmptyState
+          mascot="binoculares"
           title="Aún no hay operaciones"
           hint="Cuando se apruebe y ejecute la primera propuesta, aparecerá aquí."
         />

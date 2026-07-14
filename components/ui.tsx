@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { fmtMoney, fmtMoneySigned, fmtPct, fmtUsd, USD_MXN_RATE } from "@/lib/format";
+import { Mascot, type MascotPose } from "@/components/Mascot";
 
 export function Card({
   children,
@@ -189,13 +190,20 @@ export function EmptyState({
   title,
   hint,
   action,
+  mascot,
 }: {
   title: string;
   hint?: string;
   action?: ReactNode;
+  mascot?: MascotPose;
 }) {
   return (
     <Card className="py-10 text-center">
+      {mascot && (
+        <div className="mb-4 flex justify-center">
+          <Mascot pose={mascot} size={88} />
+        </div>
+      )}
       <p className="font-extrabold">{title}</p>
       {hint && <p className="mx-auto mt-1 max-w-md text-sm font-medium text-ink2">{hint}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}

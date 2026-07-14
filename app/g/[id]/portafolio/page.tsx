@@ -23,6 +23,7 @@ export default async function PortfolioPage({
       />
       {positions.length === 0 ? (
         <EmptyState
+          mascot="laptop"
           title="No hay posiciones abiertas"
           hint="Cuando el grupo apruebe una compra, aparecerá aquí con su ganancia o pérdida en vivo."
         />
