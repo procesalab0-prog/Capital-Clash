@@ -6,7 +6,7 @@ import { isDemoMode } from "@/lib/data/provider";
 import { getSessionUser } from "@/lib/session";
 import { logoutAction } from "@/app/actions";
 import { Badge } from "@/components/ui";
-import { LogoMark, Wordmark } from "@/components/Logo";
+import { HeaderLogo } from "@/components/HeaderLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const jetbrains = JetBrains_Mono({
@@ -54,15 +54,7 @@ export default async function RootLayout({
       <body className={`${jetbrains.variable} min-h-screen antialiased`}>
         <header className="sticky top-0 z-20 border-b-[3px] border-line bg-bg">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-            <Link href={user ? "/grupos" : "/"} className="flex items-center gap-3">
-              <LogoMark size={40} />
-              <span className="leading-tight">
-                <Wordmark className="block text-lg" />
-                <span className="hidden text-[10px] font-bold uppercase tracking-widest text-muted sm:block">
-                  Tu fondo. Tu equipo. Tu victoria.
-                </span>
-              </span>
-            </Link>
+            <HeaderLogo href={user ? "/grupos" : "/"} />
             <div className="flex items-center gap-2 sm:gap-3">
               {demo && <Badge tone="ink">Modo demo</Badge>}
               <ThemeToggle />
